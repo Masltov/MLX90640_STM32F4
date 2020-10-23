@@ -88,28 +88,7 @@ RingBuffer irDataCP1;
 // Keep the LED on for 2/3 of a second.
 #define BLINK_ON_TICKS  (TIMER_FREQUENCY_HZ * 3 / 4)
 #define BLINK_OFF_TICKS (TIMER_FREQUENCY_HZ - BLINK_ON_TICKS)
-/*
-const uint16_t char_T1[256] =	{	0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0xFF00, 0xFF00, 0xFF00, 0xFF00, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, \
-									0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000};
 
-extern struct comInterface interface;
-MLX_PARAM mlxParam;
-
-*/
 
 
 /* USART configuration structure for USART2 */
@@ -155,17 +134,22 @@ int main(void)
 	irDataCP1 = Get16Ringbuffer();
 	ili9341_Init();
 	HAL_Delay(100);
+	
+	// Initially display green screen 
 	ili9341_DrawRect( 0x0EE0, 0x0000, 0x0000, 0x0140, 0x00F0);
 	initLED();
 	generateColorMap();
+	
+	// Initialize IR-Camera sensor	
 	MLX90640_I2CInit();
 	MLX90640_SetChessMode(0x33);
-    MLX90640_SetRefreshRate(0x33, Eight_Hertz);
-    MLX90640_SetSubPageRepeat(subPageRepeat_Enable);
+	MLX90640_SetRefreshRate(0x33, Eight_Hertz);
+	MLX90640_SetSubPageRepeat(subPageRepeat_Enable);	
+	MLX90640_DumpEE((uint8_t) 0x33, pEEData);
+	MLX90640_ExtractParameters(pEEData,pParam);
 	// Infinite loop
 
-  	  MLX90640_DumpEE((uint8_t) 0x33, pEEData);
-  	  MLX90640_ExtractParameters(pEEData,pParam);
+
   while (1)
     {
       blink_led_on();
@@ -301,10 +285,14 @@ void displayHeatMap()
 
 void setGridValues(gsl_spline2d* spline, double *za, std::vector<uint16_t> xVec, std::vector<uint16_t> yVec)
 {
-	  gsl_spline2d_set(spline, za, 0, 0, 0.0);
-	  gsl_spline2d_set(spline, za, 0, 1, 1.0);
-	  gsl_spline2d_set(spline, za, 1, 1, 0.5);
-	  gsl_spline2d_set(spline, za, 1, 0, 1.0);
+  
+    for (int row =0; row < yVec.length(); row++)
+    {
+      for (int col=0; col < xVec.length(); col++)
+      {
+	gsl_spline2d_set(spline, za, xVec(col), yVec(row), resTemp[row*32 + col]);
+      }
+    } 
 }
 
 void displayHeatMap()
@@ -313,9 +301,9 @@ void displayHeatMap()
 	getMinVal();
 
 	std::vector<std::vector<double>> vec(24);
-	std::vector<double> vecStz(32), vecVal(32), vecOut(32*2); //Stz = Stützstellen; Val = Sensorwerte; Out =
-	std::vector<uint16_t> printVec;
-	std::vector<uint16_t> xVec, yVec;
+	std::vector<uint16_t> bufVec; //Stz = Stützstellen; Val = Sensorwerte; Out =
+	std::vector<std::vector<uint16_t>> printArr;
+	std::vector<uint16_t> xVec, yVec; //xVec absciss vector. yVec ordinated Vector
 
 	//define abscisse vector
 	for (int i=0; i <32; i = i++)
@@ -330,9 +318,9 @@ void displayHeatMap()
 
 	// Example from https://www.gnu.org/software/gsl/doc/html/interp.html#id1
 	  const gsl_interp2d_type *T = gsl_interp2d_bilinear;
-	  const size_t N = 100;             /* number of points to interpolate */
-	  const double xa[] = { 0.0, 1.0 }; /* define unit square */
-	  const double ya[] = { 0.0, 1.0 };
+	  const size_t N = 10;             /* number of points to interpolate */
+	  const double xa[] = { 0.0, 310.0 }; /* define unit square */
+	  const double ya[] = { 0.0, 230.0 };
 	  const size_t nx = sizeof(xa) / sizeof(double); /* x grid points */
 	  const size_t ny = sizeof(ya) / sizeof(double); /* y grid points */
 	  double *za = malloc(nx * ny * sizeof(double));
@@ -344,52 +332,34 @@ void displayHeatMap()
 	  /* set z grid values */
 	  setGridValues(spline, za, xVec, yVec);
 
+	  /* initialize interpolation */
+	  gsl_spline2d_init(spline, xa, ya, za, nx, ny);
 
-	for(int row = 0; row<24; row++)
+	for (int row=0; row <24; i = i++)
 	{
+	    for (int col = 0; col <32; col++)
+	    {
+	  /* interpolate N values in x and y and print out grid for plotting */
+	      for (int i = 0; i < N; ++i)
+		{
+		  double xi = i / (N - 1.0);
 
-		//Fill vecStz with 0 - 64 with stepSize 2
-		for(int i  = 0 ; i<32; i++)
-		{
-			vecStz[i] = (double)(i*2.0);
+		  for (j = 0; j < N; ++j)
+		  {
+		    double yj = j / (N - 1.0);
+		    double zij = gsl_spline2d_eval(spline, xi, yj, xacc, yacc);
+		  }
 		}
-		for(int i  = 0 ; i<32; i++)
-		{
-			vecVal[i] = resTemp[row*32 + i];
-		}
-		tk::spline s;
-		s.set_points(vecStz,vecVal);
-		for(int i=0; i<64; i++)
-		{
-			vecOut[i] = s(i);
-		}
-		vec[row] = vecOut;
+	    }
 	}
-	delete vecStz;
-	delete vecVal;
-	//delete vecOut;
-	delete printVec;
-	tk::spline s;
-	std::vector<double> vecStz_v(24), vecVal_v(24), vecOut_v(48);
-	std::vector<uint16_t> printVec_v;
-	for (int col = 0; col<64; col++)
-	{
-		for(int i  = 0 ; i<24; i++)
-		{
-			vecVal_v[i] = vec[i][col];
-		}
-		for(int i  = 0 ; i<24; i++)
-		{
-			vecStz_v[i] = (double)(i*2.0);
-		}
-		s.set_points(vecStz_v,vecVal_v);
-		for(int i=0; i<64; i++)
-		{
-			vecOut_v[i] = s(i);
-		}
-		printVec = parseTempVal(vecOut_v);
-		ili9341_DrawVLineColored(printVec_v, col, 48);
-	}
+	gsl_spline2d_free(spline);
+	gsl_interp_accel_free(xacc);
+	gsl_interp_accel_free(yacc);
+	free(za);
+
+
+	printArr = parseTempVal(vecOut_v);
+	ili9341_DrawVLineColored(printVec_v, col, 48);
 	vec.clear();
 }
 
